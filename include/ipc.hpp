@@ -20,7 +20,7 @@ namespace
   external_log_fn log_fn = noop;
 } // ns
 
-static void set_log_fn(external_log_fn fn)
+inline void set_log_fn(external_log_fn fn)
 {
   log_fn = fn;
 }
@@ -86,7 +86,7 @@ static const char*   IPC_COMMANDS[]{
 };
 
 } // namespace constants
-static auto IsKeepAlive = [](auto type) { return type == constants::IPC_KEEPALIVE_TYPE; };
+inline auto IsKeepAlive = [](auto type) { return type == constants::IPC_KEEPALIVE_TYPE; };
 //---------------------------------------------------------------------
 class ipc_message
 {
@@ -501,7 +501,7 @@ public:
   }
   };
 //---------------------------------------------------------------------
-static ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message::byte_buffer>&& data)
+inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message::byte_buffer>&& data)
 {
   uint8_t message_type = *(data.at(constants::index::TYPE).data());
 

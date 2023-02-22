@@ -39,7 +39,7 @@ enum RequestType {
  *
  * @param [in] {int} Signed integer should represent a byte value
  */
-static RequestType int_to_request_type(int byte)
+inline RequestType int_to_request_type(int byte)
 {
   switch (byte)
   {
@@ -79,7 +79,7 @@ static RequestType int_to_request_type(int byte)
   return UNKNOWN;
 }
 
-static std::string request_type_to_string(RequestType type)
+inline std::string request_type_to_string(RequestType type)
 {
   switch (type)
   {

@@ -46,7 +46,7 @@ static const std::unordered_map<std::string, uint32_t> IPC_CMD_CODES
 {REQUEST_PROCESS_POLL_RESULT, static_cast<uint32_t>(TGCommand::poll_result)}
 };
 
-static const TGCommand GetIPCCommand(const std::string& code_string)
+inline const TGCommand GetIPCCommand(const std::string& code_string)
 {
   return static_cast<TGCommand>(IPC_CMD_CODES.at(code_string));
 }
