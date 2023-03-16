@@ -324,7 +324,7 @@ public:
     };
   }
 //--------------------
-  const bool repost() const
+  bool repost() const
   {
     return (m_frames.at(constants::index::REPOST).front() != 0x00);
   }
@@ -337,7 +337,7 @@ public:
     };
   }
 //--------------------
-  const uint32_t cmd() const
+  uint32_t cmd() const
   {
     auto bytes = m_frames.at(constants::index::CMD).data();
     auto cmd   = static_cast<uint32_t>(bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]);
@@ -507,12 +507,12 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
 
   switch (message_type)
   {
-    case (constants::IPC_OK_TYPE):          return std::make_unique<okay_message>();
-    case (constants::IPC_KEEPALIVE_TYPE):   return std::make_unique<keepalive>();
-    case (constants::IPC_KIQ_MESSAGE):      return std::make_unique<kiq_message>(data);
+    case (constants::IPC_OK_TYPE):          return std::make_unique<okay_message>    ();
+    case (constants::IPC_KEEPALIVE_TYPE):   return std::make_unique<keepalive>       ();
+    case (constants::IPC_KIQ_MESSAGE):      return std::make_unique<kiq_message>     (data);
     case (constants::IPC_PLATFORM_TYPE):    return std::make_unique<platform_message>(data);
-    case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>(data);
-    case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>(data);
+    case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>   (data);
+    case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>  (data);
     case (constants::IPC_PLATFORM_REQUEST): return std::make_unique<platform_request>(data);
     default:                                return nullptr;
   }
@@ -625,9 +625,9 @@ public:
     const auto     payload   = message->data();
     const size_t   frame_num = payload.size();
 
-    for (int i = 0; i < frame_num; i++)
+    for (auto i = 0; i < frame_num; i++)
     {
-      const int      flag  = (i == (frame_num - 1)) ? 0 : ZMQ_SNDMORE;
+      const auto     flag  = (i == (frame_num - 1)) ? zmq::send_flags::none : zmq::send_flags::sndmore;
       const auto     data  = payload.at(i);
       zmq::message_t message{data.size()};
       std::memcpy(message.data(), data.data(), data.size());
