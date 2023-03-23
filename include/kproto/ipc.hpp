@@ -42,6 +42,7 @@ static const uint8_t IPC_PLATFORM_TYPE   {0x03};
 static const uint8_t IPC_PLATFORM_ERROR  {0x04};
 static const uint8_t IPC_PLATFORM_REQUEST{0x05};
 static const uint8_t IPC_PLATFORM_INFO   {0x06};
+static const uint8_t IPC_FAIL_TYPE       {0x07};
 
 static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_OK_TYPE,          "IPC_OK_TYPE"},
@@ -50,7 +51,8 @@ static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_PLATFORM_TYPE,    "IPC_PLATFORM_TYPE"},
   {IPC_PLATFORM_ERROR,   "IPC_PLATFORM_ERROR"},
   {IPC_PLATFORM_REQUEST, "IPC_PLATFORM_REQUEST"},
-  {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"}
+  {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"},
+  {IPC_FAIL_TYPE,        "IPC_FAIL_TYPE"}
 };
 
 namespace index {
@@ -193,6 +195,19 @@ public:
   }
 //--------------------
   virtual ~okay_message() override {}
+};
+//---------------------------------------------------------------------
+class fail_message : public ipc_message
+{
+public:
+  fail_message()
+  {
+    m_frames = {
+      byte_buffer{},
+      byte_buffer{constants::IPC_OK_TYPE}};
+  }
+//--------------------
+  virtual ~fail_message() override {}
 };
 //---------------------------------------------------------------------
 class keepalive : public ipc_message
