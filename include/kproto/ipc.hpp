@@ -11,7 +11,6 @@
 #include <future>
 #include <zmq.hpp>
 
-
 namespace kiq {
 using external_log_fn = std::function<void(const char*)>;
 namespace
@@ -299,7 +298,7 @@ public:
 //--------------------
   virtual ~platform_message() override {}
 //--------------------
-  const std::string platform() const
+  std::string platform() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::PLATFORM).data()),
@@ -307,7 +306,7 @@ public:
     };
   }
 //--------------------
-  const std::string id() const
+  std::string id() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::ID).data()),
@@ -315,7 +314,7 @@ public:
     };
   }
 //--------------------
-  const std::string user() const
+  std::string user() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::USER).data()),
@@ -323,7 +322,7 @@ public:
     };
   }
 //--------------------
-  const std::string content() const
+  std::string content() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::DATA).data()),
@@ -331,7 +330,7 @@ public:
     };
   }
 //--------------------
-  const std::string urls() const
+  std::string urls() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::URLS).data()),
@@ -344,7 +343,7 @@ public:
     return (m_frames.at(constants::index::REPOST).front() != 0x00);
   }
 //--------------------
-  const std::string args() const
+  std::string args() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::ARGS).data()),
@@ -522,21 +521,22 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
 
   switch (message_type)
   {
-    case (constants::IPC_OK_TYPE):          return std::make_unique<okay_message>    ();
-    case (constants::IPC_KEEPALIVE_TYPE):   return std::make_unique<keepalive>       ();
-    case (constants::IPC_KIQ_MESSAGE):      return std::make_unique<kiq_message>     (data);
+    case (constants::IPC_OK_TYPE):          return std::make_unique<okay_message>();
+    case (constants::IPC_KEEPALIVE_TYPE):   return std::make_unique<keepalive>();
+    case (constants::IPC_KIQ_MESSAGE):      return std::make_unique<kiq_message>(data);
     case (constants::IPC_PLATFORM_TYPE):    return std::make_unique<platform_message>(data);
-    case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>   (data);
-    case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>  (data);
+    case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>(data);
+    case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>(data);
     case (constants::IPC_PLATFORM_REQUEST): return std::make_unique<platform_request>(data);
+    case (constants::IPC_FAIL_TYPE):        return std::make_unique<fail_message>(data);
     default:                                return nullptr;
   }
 }
 //---------------------------------------------------------------------
 using timepoint = std::chrono::time_point<std::chrono::system_clock>;
 using duration  = std::chrono::milliseconds;
-static const duration time_limit = std::chrono::milliseconds(60000);
-static const duration hb_rate    = std::chrono::milliseconds(600);
+static const duration time_limit = std::chrono::milliseconds(600000);
+static const duration hb_rate    = std::chrono::milliseconds(20000);
 class session_daemon {
 public:
   using hbtime_t = std::pair<timepoint, duration>;
@@ -640,9 +640,9 @@ public:
     const auto     payload   = message->data();
     const size_t   frame_num = payload.size();
 
-    for (auto i = 0; i < frame_num; i++)
+    for (int i = 0; i < frame_num; i++)
     {
-      const auto     flag  = (i == (frame_num - 1)) ? zmq::send_flags::none : zmq::send_flags::sndmore;
+      const int      flag  = (i == (frame_num - 1)) ? 0 : ZMQ_SNDMORE;
       const auto     data  = payload.at(i);
       zmq::message_t message{data.size()};
       std::memcpy(message.data(), data.data(), data.size());
