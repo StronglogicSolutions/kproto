@@ -11,7 +11,6 @@
 #include <future>
 #include <zmq.hpp>
 
-
 namespace kiq {
 using external_log_fn = std::function<void(const char*)>;
 namespace
@@ -42,7 +41,6 @@ static const uint8_t IPC_PLATFORM_TYPE   {0x03};
 static const uint8_t IPC_PLATFORM_ERROR  {0x04};
 static const uint8_t IPC_PLATFORM_REQUEST{0x05};
 static const uint8_t IPC_PLATFORM_INFO   {0x06};
-static const uint8_t IPC_FAIL_TYPE       {0x07};
 
 static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_OK_TYPE,          "IPC_OK_TYPE"},
@@ -51,8 +49,7 @@ static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_PLATFORM_TYPE,    "IPC_PLATFORM_TYPE"},
   {IPC_PLATFORM_ERROR,   "IPC_PLATFORM_ERROR"},
   {IPC_PLATFORM_REQUEST, "IPC_PLATFORM_REQUEST"},
-  {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"},
-  {IPC_FAIL_TYPE,        "IPC_FAIL_TYPE"}
+  {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"}
 };
 
 namespace index {
@@ -197,19 +194,6 @@ public:
   virtual ~okay_message() override {}
 };
 //---------------------------------------------------------------------
-class fail_message : public ipc_message
-{
-public:
-  fail_message()
-  {
-    m_frames = {
-      byte_buffer{},
-      byte_buffer{constants::IPC_OK_TYPE}};
-  }
-//--------------------
-  virtual ~fail_message() override {}
-};
-//---------------------------------------------------------------------
 class keepalive : public ipc_message
 {
 public:
@@ -339,7 +323,7 @@ public:
     };
   }
 //--------------------
-  bool repost() const
+  const bool repost() const
   {
     return (m_frames.at(constants::index::REPOST).front() != 0x00);
   }
@@ -352,7 +336,7 @@ public:
     };
   }
 //--------------------
-  uint32_t cmd() const
+  const uint32_t cmd() const
   {
     auto bytes = m_frames.at(constants::index::CMD).data();
     auto cmd   = static_cast<uint32_t>(bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]);
@@ -522,12 +506,12 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
 
   switch (message_type)
   {
-    case (constants::IPC_OK_TYPE):          return std::make_unique<okay_message>    ();
-    case (constants::IPC_KEEPALIVE_TYPE):   return std::make_unique<keepalive>       ();
-    case (constants::IPC_KIQ_MESSAGE):      return std::make_unique<kiq_message>     (data);
+    case (constants::IPC_OK_TYPE):          return std::make_unique<okay_message>();
+    case (constants::IPC_KEEPALIVE_TYPE):   return std::make_unique<keepalive>();
+    case (constants::IPC_KIQ_MESSAGE):      return std::make_unique<kiq_message>(data);
     case (constants::IPC_PLATFORM_TYPE):    return std::make_unique<platform_message>(data);
-    case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>   (data);
-    case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>  (data);
+    case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>(data);
+    case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>(data);
     case (constants::IPC_PLATFORM_REQUEST): return std::make_unique<platform_request>(data);
     default:                                return nullptr;
   }
@@ -535,8 +519,8 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
 //---------------------------------------------------------------------
 using timepoint = std::chrono::time_point<std::chrono::system_clock>;
 using duration  = std::chrono::milliseconds;
-static const duration time_limit = std::chrono::milliseconds(60000);
-static const duration hb_rate    = std::chrono::milliseconds(600);
+static const duration time_limit = std::chrono::milliseconds(600000);
+static const duration hb_rate    = std::chrono::milliseconds(20000);
 class session_daemon {
 public:
   using hbtime_t = std::pair<timepoint, duration>;
@@ -640,9 +624,9 @@ public:
     const auto     payload   = message->data();
     const size_t   frame_num = payload.size();
 
-    for (auto i = 0; i < frame_num; i++)
+    for (int i = 0; i < frame_num; i++)
     {
-      const auto     flag  = (i == (frame_num - 1)) ? zmq::send_flags::none : zmq::send_flags::sndmore;
+      const int      flag  = (i == (frame_num - 1)) ? 0 : ZMQ_SNDMORE;
       const auto     data  = payload.at(i);
       zmq::message_t message{data.size()};
       std::memcpy(message.data(), data.data(), data.size());
