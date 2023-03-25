@@ -194,6 +194,19 @@ public:
   virtual ~okay_message() override {}
 };
 //---------------------------------------------------------------------
+class fail_message : public ipc_message
+{
+public:
+  fail_message()
+  {
+    m_frames = {
+      byte_buffer{},
+      byte_buffer{constants::IPC_OK_TYPE}};
+  }
+//--------------------
+  virtual ~fail_message() override {}
+};
+//---------------------------------------------------------------------
 class keepalive : public ipc_message
 {
 public:
