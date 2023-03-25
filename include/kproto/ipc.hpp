@@ -41,6 +41,7 @@ static const uint8_t IPC_PLATFORM_TYPE   {0x03};
 static const uint8_t IPC_PLATFORM_ERROR  {0x04};
 static const uint8_t IPC_PLATFORM_REQUEST{0x05};
 static const uint8_t IPC_PLATFORM_INFO   {0x06};
+static const uint8_t IPC_FAIL_TYPE       {0x07};
 
 static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_OK_TYPE,          "IPC_OK_TYPE"},
@@ -49,7 +50,8 @@ static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_PLATFORM_TYPE,    "IPC_PLATFORM_TYPE"},
   {IPC_PLATFORM_ERROR,   "IPC_PLATFORM_ERROR"},
   {IPC_PLATFORM_REQUEST, "IPC_PLATFORM_REQUEST"},
-  {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"}
+  {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"},
+  {IPC_FAIL_TYPE,        "IPC_FAIL_TYPE"}
 };
 
 namespace index {
@@ -296,7 +298,7 @@ public:
 //--------------------
   virtual ~platform_message() override {}
 //--------------------
-  const std::string platform() const
+  std::string platform() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::PLATFORM).data()),
@@ -304,7 +306,7 @@ public:
     };
   }
 //--------------------
-  const std::string id() const
+  std::string id() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::ID).data()),
@@ -312,7 +314,7 @@ public:
     };
   }
 //--------------------
-  const std::string user() const
+  std::string user() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::USER).data()),
@@ -320,7 +322,7 @@ public:
     };
   }
 //--------------------
-  const std::string content() const
+  std::string content() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::DATA).data()),
@@ -328,7 +330,7 @@ public:
     };
   }
 //--------------------
-  const std::string urls() const
+  std::string urls() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::URLS).data()),
@@ -336,12 +338,12 @@ public:
     };
   }
 //--------------------
-  const bool repost() const
+  bool repost() const
   {
     return (m_frames.at(constants::index::REPOST).front() != 0x00);
   }
 //--------------------
-  const std::string args() const
+  std::string args() const
   {
     return std::string{
       reinterpret_cast<const char*>(m_frames.at(constants::index::ARGS).data()),
@@ -349,7 +351,7 @@ public:
     };
   }
 //--------------------
-  const uint32_t cmd() const
+  uint32_t cmd() const
   {
     auto bytes = m_frames.at(constants::index::CMD).data();
     auto cmd   = static_cast<uint32_t>(bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]);
@@ -526,6 +528,7 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
     case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>(data);
     case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>(data);
     case (constants::IPC_PLATFORM_REQUEST): return std::make_unique<platform_request>(data);
+    case (constants::IPC_FAIL_TYPE):        return std::make_unique<fail_message>(data);
     default:                                return nullptr;
   }
 }
