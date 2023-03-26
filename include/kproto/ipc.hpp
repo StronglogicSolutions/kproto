@@ -528,7 +528,7 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
     case (constants::IPC_PLATFORM_INFO):    return std::make_unique<platform_info>(data);
     case (constants::IPC_PLATFORM_ERROR):   return std::make_unique<platform_error>(data);
     case (constants::IPC_PLATFORM_REQUEST): return std::make_unique<platform_request>(data);
-    case (constants::IPC_FAIL_TYPE):        return std::make_unique<fail_message>(data);
+    case (constants::IPC_FAIL_TYPE):        return std::make_unique<fail_message>();
     default:                                return nullptr;
   }
 }
