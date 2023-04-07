@@ -203,7 +203,7 @@ public:
   {
     m_frames = {
       byte_buffer{},
-      byte_buffer{constants::IPC_OK_TYPE}};
+      byte_buffer{constants::IPC_FAIL_TYPE}};
   }
 //--------------------
   virtual ~fail_message() override {}
