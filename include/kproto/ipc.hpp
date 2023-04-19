@@ -68,6 +68,7 @@ static const uint8_t REQ_ARGS  = 0x06;
 static const uint8_t REPOST    = 0x07;
 static const uint8_t ARGS      = 0x08;
 static const uint8_t CMD       = 0x09;
+static const uint8_t TIME      = 0x0A;
 static const uint8_t KIQ_DATA  = 0x02;
 static const uint8_t ERROR     = 0x05;
 } // namespace index
@@ -204,6 +205,8 @@ public:
     m_frames = {
       byte_buffer{},
       byte_buffer{constants::IPC_FAIL_TYPE}};
+
+
   }
 //--------------------
   virtual ~fail_message() override {}
@@ -261,7 +264,7 @@ public:
 class platform_message : public ipc_message
 {
 public:
-  platform_message(const std::string& platform, const std::string& id, const std::string& user, const std::string& content, const std::string& urls, const bool repost = false, uint32_t cmd = 0x00, const std::string& args = "")
+  platform_message(const std::string& platform, const std::string& id, const std::string& user, const std::string& content, const std::string& urls, const bool repost = false, uint32_t cmd = 0x00, const std::string& args = "", const std::string& time = "")
   {
     m_frames = {
       byte_buffer{},
@@ -276,7 +279,8 @@ public:
       byte_buffer{static_cast<unsigned char>((cmd >> 24) & 0xFF),
                   static_cast<unsigned char>((cmd >> 16) & 0xFF),
                   static_cast<unsigned char>((cmd >> 8 ) & 0xFF),
-                  static_cast<unsigned char>((cmd      ) & 0xFF)}
+                  static_cast<unsigned char>((cmd      ) & 0xFF)},
+      byte_buffer{time.data(), time.data() + args.size()},
     };
   }
 //--------------------
@@ -292,7 +296,8 @@ public:
       byte_buffer{data.at(constants::index::URLS)},
       byte_buffer{data.at(constants::index::REPOST)},
       byte_buffer{data.at(constants::index::ARGS)},
-      byte_buffer{data.at(constants::index::CMD)}
+      byte_buffer{data.at(constants::index::CMD)},
+      byte_buffer{data.at(constants::index::TIME)}
     };
   }
 //--------------------
@@ -357,6 +362,14 @@ public:
     auto cmd   = static_cast<uint32_t>(bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]);
 
     return cmd;
+  }
+//--------------------
+  std::string time() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::TIME).data()),
+      m_frames.at(constants::index::TIME).size()
+    };
   }
 //--------------------
   std::string to_string() const override
