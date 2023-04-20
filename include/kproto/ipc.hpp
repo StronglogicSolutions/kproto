@@ -280,7 +280,7 @@ public:
                   static_cast<unsigned char>((cmd >> 16) & 0xFF),
                   static_cast<unsigned char>((cmd >> 8 ) & 0xFF),
                   static_cast<unsigned char>((cmd      ) & 0xFF)},
-      byte_buffer{time.data(), time.data() + args.size()},
+      byte_buffer{time.data(), time.data() + time.size()},
     };
   }
 //--------------------
@@ -384,7 +384,8 @@ public:
             "(URLS):" + urls()                     + ',' +
             "(Repost):" + std::to_string(repost()) + ',' +
             "(Args):" + args()                     + ',' +
-            "(Cmd):" + std::to_string(cmd());
+            "(Cmd):" + std::to_string(cmd())       + ',' +
+            "(Time):" + time();
   }
 };
 //---------------------------------------------------------------------
