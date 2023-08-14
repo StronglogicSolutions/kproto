@@ -32,7 +32,8 @@ enum RequestType {
   FETCH_POSTS           = 0x15,
   UPDATE_POST           = 0x16,
   KIQ_STATUS            = 0x17,
-  UNKNOWN               = 0x18
+  CONVERT_TASK          = 0x18,
+  UNKNOWN               = 0x19
 };
 
 /**
@@ -78,6 +79,8 @@ inline RequestType int_to_request_type(int byte)
       return UPDATE_POST;
     case (KIQ_STATUS):
       return KIQ_STATUS;
+    case (CONVERT_TASK):
+      return CONVERT_TASK;
   }
   return UNKNOWN;
 }
@@ -120,7 +123,10 @@ inline std::string request_type_to_string(RequestType type)
       return "UPDATE_POST";
     case (KIQ_STATUS):
       return "KIQ_STATUS";
+    case (CONVERT_TASK):
+      return "CONVERT_TASK";
   }
   return "UNKNOWN";
 }
 } // ns kiq::Request
+
