@@ -71,7 +71,7 @@ static const uint8_t REPOST    = 0x07;
 static const uint8_t ARGS      = 0x08;
 static const uint8_t CMD       = 0x09;
 static const uint8_t TIME      = 0x0A;
-static const uint8_t KIQ_DATA  = 0x02;
+static const uint8_t KIQ_DATA  = 0x03;
 static const uint8_t ERROR     = 0x05;
 } // namespace index
 
@@ -280,11 +280,12 @@ public:
 class kiq_message : public ipc_message
 {
 public:
-  kiq_message(const std::string& payload)
+  kiq_message(const std::string& payload, const std::string& platform = "")
   {
     m_frames = {
       byte_buffer{},
       byte_buffer{constants::IPC_KIQ_MESSAGE},
+      byte_buffer{platform.data(), platform.data() + platform.size()},
       byte_buffer{payload.data(), payload.data() + payload.size()}
     };
   }
@@ -294,10 +295,17 @@ public:
     m_frames = {
       byte_buffer{},
       byte_buffer{data.at(constants::index::TYPE)},
+      byte_buffer{data.at(constants::index::PLATFORM)},
       byte_buffer{data.at(constants::index::KIQ_DATA)}
     };
   }
-//--------------------
+  //--------------------
+  const std::string platform() const
+  {
+    return {reinterpret_cast<const char*>(m_frames.at(constants::index::PLATFORM).data()),
+            m_frames.at(constants::index::PLATFORM).size()};
+  }
+  //--------------------
   const std::string payload() const
   {
     return {reinterpret_cast<const char*>(m_frames.at(constants::index::KIQ_DATA).data()),
@@ -306,8 +314,9 @@ public:
 //--------------------
   std::string to_string() const override
   {
-    return  "(Type): "    + ipc_message::to_string() + ',' +
-            "(Payload): " + payload();
+    return  "(Type): "     + ipc_message::to_string() + ',' +
+            "(Platform): " + platform() + ',' +
+            "(Payload): "  + payload();
   }
 
 };
