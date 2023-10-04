@@ -728,7 +728,7 @@ public:
 
     for (int i = 0; i < frame_num; i++)
     {
-      const int      flag  = (i == (frame_num - 1)) ? 0 : ZMQ_SNDMORE;
+      const auto     flag = i == (frame_num - 1) ? zmq::send_flags::none : zmq::send_flags::sndmore;
       const auto     data  = payload.at(i);
       zmq::message_t message{data.size()};
       std::memcpy(message.data(), data.data(), data.size());
