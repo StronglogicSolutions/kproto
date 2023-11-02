@@ -28,7 +28,7 @@ function create_ipc_message(type, payload, platform)
   processor[type](payload)
   for (const part of data)
     frames.push(encoder.encode((typeof part === 'number') ?
-                                String.fromCharCode(part) : bytes))
+                                String.fromCharCode(part) : part))
   return frames
 }
 
