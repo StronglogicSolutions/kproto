@@ -11,19 +11,20 @@ const encoder              = new TextEncoder()
 
 function create_ipc_message(type, payload, platform)
 {
+  const cmdname = () => `${platform}:${type}`
   const frames = []
   let   data   = []
 
-  const processor = { "loadurl"   : function() { data = ["", IPC_PLATFORM_INFO, platform, payload, "loadurl"] },
-                      "ok"        : function() { data = ["", IPC_OK_TYPE,                                 ""] },
-                      "keepalive" : function() { data = ["", IPC_KEEPALIVE_TYPE,                          ""] },
-                      "kiq"       : function() { data = ["", IPC_KIQ_MESSAGE,                             ""] },
-                      "platform"  : function() { data = ["", IPC_PLATFORM_TYPE,                           ""] },
-                      "error"     : function() { data = ["", IPC_PLATFORM_ERROR,                          ""] },
-                      "request"   : function() { data = ["", IPC_PLATFORM_REQUEST,                        ""] },
-                      "info"      : function() { data = ["", IPC_PLATFORM_INFO,                           ""] },
-                      "fail"      : function() { data = ["", IPC_FAIL_TYPE,                               ""] },
-                      "status"    : function() { data = ["", IPC_STATUS,                                  ""] }}
+  const processor = { "loadurl"   : function() { data = ["", IPC_PLATFORM_INFO, platform, payload, cmdname() ] },
+                      "ok"        : function() { data = ["", IPC_OK_TYPE,                                  ""] },
+                      "keepalive" : function() { data = ["", IPC_KEEPALIVE_TYPE,                           ""] },
+                      "kiq"       : function() { data = ["", IPC_KIQ_MESSAGE,                              ""] },
+                      "platform"  : function() { data = ["", IPC_PLATFORM_TYPE,                            ""] },
+                      "error"     : function() { data = ["", IPC_PLATFORM_ERROR,                           ""] },
+                      "request"   : function() { data = ["", IPC_PLATFORM_REQUEST,                         ""] },
+                      "info"      : function() { data = ["", IPC_PLATFORM_INFO,                            ""] },
+                      "fail"      : function() { data = ["", IPC_FAIL_TYPE,                                ""] },
+                      "status"    : function() { data = ["", IPC_STATUS,                                   ""] }}
 
   processor[type](payload)
   for (const part of data)
