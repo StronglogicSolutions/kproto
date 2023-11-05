@@ -734,10 +734,12 @@ public:
       std::memcpy(message.data(), data.data(), data.size());
       socket().send(message, flag);
     }
+    on_done();
   }
 
 protected:
-  virtual zmq::socket_t& socket() = 0;
+  virtual zmq::socket_t& socket()  = 0;
+  virtual void           on_done() = 0;
 };
 //---------------------------------------------------------------------
 class IPCBrokerInterface
