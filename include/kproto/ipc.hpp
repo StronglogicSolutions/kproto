@@ -10,7 +10,6 @@
 #include <type_traits>
 #include <future>
 #include <zmq.hpp>
-#include <iostream>
 
 namespace kiq {
 using external_log_fn = std::function<void(const char*)>;
@@ -732,10 +731,8 @@ public:
       const auto     flag = i == (frame_num - 1) ? zmq::send_flags::none : zmq::send_flags::sndmore;
       const auto     data  = payload.at(i);
       zmq::message_t message{data.size()};
-      std::cout << "sending frame: " << message.to_string() << std::endl;
       std::memcpy(message.data(), data.data(), data.size());
       socket().send(message, flag);
-      std::cout << "sent" << std::endl;
     }
     on_done();
   }
