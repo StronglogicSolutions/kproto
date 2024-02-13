@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 const IPC_OK_TYPE          = 0x00
 const IPC_KEEPALIVE_TYPE   = 0x01
 const IPC_KIQ_MESSAGE      = 0x02
@@ -8,7 +10,8 @@ const IPC_PLATFORM_INFO    = 0x06
 const IPC_FAIL_TYPE        = 0x07
 const IPC_STATUS           = 0x08
 const encoder              = new TextEncoder()
-
+//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
 function create_ipc_message(type, payload, platform)
 {
   const cmdname = () => `${platform}:${type}`
@@ -16,6 +19,7 @@ function create_ipc_message(type, payload, platform)
   let   data   = []
 
   const processor = { "loadurl"   : function() { data = ["", IPC_PLATFORM_INFO, platform, payload, cmdname() ] },
+                      "analysis"  : function() { data = ["", IPC_PLATFORM_INFO, platform, payload, cmdname() ] },
                       "ok"        : function() { data = ["", IPC_OK_TYPE,                                  ""] },
                       "keepalive" : function() { data = ["", IPC_KEEPALIVE_TYPE,                           ""] },
                       "kiq"       : function() { data = ["", IPC_KIQ_MESSAGE,                              ""] },
@@ -32,6 +36,16 @@ function create_ipc_message(type, payload, platform)
                                 String.fromCharCode(part) : part))
   return frames
 }
-
-module.exports.kproto  = create_ipc_message
-module.exports.default = create_ipc_message
+//---------------------------------------------------------------------------------------------------------------
+function deserialize_ipc(data)
+{
+  const type = data[1].charCodeAt(0)
+  if (type === IPC_PLATFORM_INFO)
+    return data[3].replaceAll('%2C', ',')
+  return data[3]
+}
+//---------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
+module.exports.kproto      = create_ipc_message
+module.exports.default     = create_ipc_message
+module.exports.deserialize = deserialize_ipc
