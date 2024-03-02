@@ -763,6 +763,10 @@ class IPCHandlerInterface : public MessageHandlerInterface,
 {
 public:
   ~IPCHandlerInterface() override = default;
+  std::string_view get_addr()
+  {
+    return socket().get(zmq::sockopt::last_endpoint);
+  }
 };
 //---------------------------------------------------------------------
 using client_handlers_t = std::map<std::string_view, IPCHandlerInterface*>;
