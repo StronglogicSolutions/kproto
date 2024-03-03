@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include <sstream>
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -765,7 +766,11 @@ public:
   ~IPCHandlerInterface() override = default;
   std::string_view get_addr()
   {
-    return socket().get(zmq::sockopt::last_endpoint);
+    std::stringstream ss;
+    for (char c : socket().get(zmq::sockopt::last_endpoint))
+      ss << static_cast<int>(static_cast<unsigned char>(c));
+
+    return ss.str();
   }
 };
 //---------------------------------------------------------------------
