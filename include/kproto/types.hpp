@@ -33,7 +33,8 @@ enum RequestType {
   UPDATE_POST           = 0x16,
   KIQ_STATUS            = 0x17,
   CONVERT_TASK          = 0x18,
-  UNKNOWN               = 0x19
+  SCHEDULE_IPC          = 0x19,
+  UNKNOWN               = 0x1A
 };
 
 /**
@@ -81,6 +82,8 @@ inline RequestType int_to_request_type(int byte)
       return KIQ_STATUS;
     case (CONVERT_TASK):
       return CONVERT_TASK;
+    case (SCHEDULE_IPC):
+      return SCHEDULE_IPC;
   }
   return UNKNOWN;
 }
@@ -125,6 +128,8 @@ inline std::string request_type_to_string(RequestType type)
       return "KIQ_STATUS";
     case (CONVERT_TASK):
       return "CONVERT_TASK";
+    case (SCHEDULE_IPC):
+      return "SCHEDULE_IPC";
   }
   return "UNKNOWN";
 }

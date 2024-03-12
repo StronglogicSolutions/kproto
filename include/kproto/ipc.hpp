@@ -56,6 +56,18 @@ static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_STATUS,           "IPC_STATUS"}
 };
 
+static const std::unordered_map<uint8_t, const char*> IPC_FRIENDLY_NAMES{
+  {IPC_OK_TYPE,          "ok"},
+  {IPC_KEEPALIVE_TYPE,   "keepalive"},
+  {IPC_KIQ_MESSAGE,      "kiq_message"},
+  {IPC_PLATFORM_TYPE,    "platform_message"},
+  {IPC_PLATFORM_ERROR,   "platform_error"},
+  {IPC_PLATFORM_REQUEST, "platform_request"},
+  {IPC_PLATFORM_INFO,    "platform_info"},
+  {IPC_FAIL_TYPE,        "fail"},
+  {IPC_STATUS,           "status"}
+};
+
 namespace index {
 static const uint8_t EMPTY     = 0x00;
 static const uint8_t TYPE      = 0x01;
