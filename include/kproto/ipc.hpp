@@ -56,16 +56,16 @@ static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_STATUS,           "IPC_STATUS"}
 };
 
-static const std::unordered_map<uint8_t, const char*> IPC_FRIENDLY_NAMES{
-  {IPC_OK_TYPE,          "ok"},
-  {IPC_KEEPALIVE_TYPE,   "keepalive"},
-  {IPC_KIQ_MESSAGE,      "kiq_message"},
-  {IPC_PLATFORM_TYPE,    "platform_message"},
-  {IPC_PLATFORM_ERROR,   "platform_error"},
-  {IPC_PLATFORM_REQUEST, "platform_request"},
-  {IPC_PLATFORM_INFO,    "platform_info"},
-  {IPC_FAIL_TYPE,        "fail"},
-  {IPC_STATUS,           "status"}
+static const std::unordered_map<std::string, uint8_t> IPC_MESSAGE_VALUES{
+  {"IPC_OK_TYPE", IPC_OK_TYPE},
+  {"IPC_KEEPALIVE_TYPE", IPC_KEEPALIVE_TYPE},
+  {"IPC_KIQ_MESSAGE", IPC_KIQ_MESSAGE},
+  {"IPC_PLATFORM_TYPE", IPC_PLATFORM_TYPE},
+  {"IPC_PLATFORM_ERROR", IPC_PLATFORM_ERROR},
+  {"IPC_PLATFORM_REQUEST", IPC_PLATFORM_REQUEST},
+  {"IPC_PLATFORM_INFO", IPC_PLATFORM_INFO},
+  {"IPC_FAIL_TYPE", IPC_FAIL_TYPE},
+  {"IPC_STATUS", IPC_STATUS}
 };
 
 namespace index {
@@ -783,4 +783,3 @@ public:
 //---------------------------------------------------------------------
 using client_handlers_t = std::map<std::string_view, IPCHandlerInterface*>;
 } // ns kiq
-
