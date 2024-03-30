@@ -110,4 +110,3 @@ inline std::string request_type_to_string(RequestType type)
   return "UNKNOWN";
 }
 } // ns kiq::Request
-
