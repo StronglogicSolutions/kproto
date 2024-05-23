@@ -73,8 +73,8 @@ static const uint8_t EMPTY     = 0x00;
 static const uint8_t TYPE      = 0x01;
 static const uint8_t PLATFORM  = 0x02;
 static const uint8_t ID        = 0x03;
-static const uint8_t INFO      = 0x03;
-static const uint8_t INFO_TYPE = 0x04;
+static const uint8_t INFO      = 0x04;
+static const uint8_t INFO_TYPE = 0x05;
 static const uint8_t USER      = 0x04;
 static const uint8_t DATA      = 0x05;
 static const uint8_t URLS      = 0x06;
@@ -544,14 +544,15 @@ public:
 class platform_info : public ipc_message
 {
 public:
-  platform_info(const std::string& platform, const std::string& info, const std::string& type)
+  platform_info(const std::string& platform, const std::string& info, const std::string& type, const std::string& id)
   {
     m_frames = {
       byte_buffer{},
       byte_buffer{constants::IPC_PLATFORM_INFO},
       byte_buffer{platform.data(), platform.data() + platform.size()},
-      byte_buffer{info.data(), info.data() + info.size()},
-      byte_buffer{type.data(), type.data() + type.size()}
+      byte_buffer{id.data(),       id.data()       + id.size()},
+      byte_buffer{info.data(),     info.data()     + info.size()},
+      byte_buffer{type.data(),     type.data()     + type.size()}
     };
   }
 //--------------------
@@ -561,6 +562,7 @@ public:
       byte_buffer{},
       byte_buffer{data.at(constants::index::TYPE)},
       byte_buffer{data.at(constants::index::PLATFORM)},
+      byte_buffer{data.at(constants::index::ID)},
       byte_buffer{data.at(constants::index::INFO)},
       byte_buffer{data.at(constants::index::INFO_TYPE)}
     };
@@ -574,13 +576,21 @@ public:
     };
   }
 //--------------------
-  const std::string info() const
+  std::string id() const
   {
     return std::string{
-      reinterpret_cast<const char*>(m_frames.at(constants::index::INFO).data()),
-      m_frames.at(constants::index::INFO).size()
+      reinterpret_cast<const char*>(m_frames.at(constants::index::ID).data()),
+      m_frames.at(constants::index::ID).size()
     };
   }
+//--------------------
+const std::string info() const
+{
+  return std::string{
+    reinterpret_cast<const char*>(m_frames.at(constants::index::INFO).data()),
+    m_frames.at(constants::index::INFO).size()
+  };
+}
 //--------------------
   const std::string type() const
   {
@@ -594,6 +604,7 @@ public:
   {
     return  "(Type):"    + ipc_message::to_string() + ',' +
             "(Platform)" + platform()               + ',' +
+            "(ID)"       + id()               + ',' +
             "(Type):"    + type()                   + ',' +
             "(Info):"    + info();
   }
