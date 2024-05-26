@@ -12,21 +12,22 @@ const IPC_STATUS           = 0x08
 const encoder              = new TextEncoder()
 //---------------------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------
-function create_ipc_message(type, payload, platform)
+function create_ipc_message(type, payload, platform, id = '')
 {
-  const cmdname = () => `${platform}:${type}`
+  console.log('Creating IPC for', type)
   const frames = []
   let   data   = []
 
-  const processor = { "loadurl"   : function() { data = ["", IPC_PLATFORM_INFO, platform, payload, cmdname() ] },
-                      "analysis"  : function() { data = ["", IPC_PLATFORM_INFO, platform, payload, cmdname() ] },
+  const processor = { "loadurl"   : function() { data = ["", IPC_PLATFORM_INFO, platform, id, payload, type  ] },
+                      "analysis"  : function() { data = ["", IPC_PLATFORM_INFO, platform, id, payload, type  ] },
+                      "generate"  : function() { data = ["", IPC_PLATFORM_INFO, platform, id, payload, type  ] },
                       "ok"        : function() { data = ["", IPC_OK_TYPE,                                  ""] },
                       "keepalive" : function() { data = ["", IPC_KEEPALIVE_TYPE,                           ""] },
                       "kiq"       : function() { data = ["", IPC_KIQ_MESSAGE,                              ""] },
                       "platform"  : function() { data = ["", IPC_PLATFORM_TYPE,                            ""] },
                       "error"     : function() { data = ["", IPC_PLATFORM_ERROR,                           ""] },
                       "request"   : function() { data = ["", IPC_PLATFORM_REQUEST,                         ""] },
-                      "info"      : function() { data = ["", IPC_PLATFORM_INFO,                            ""] },
+                      "info"      : function() { data = ["", IPC_PLATFORM_INFO, platform, id, payload, type  ] },
                       "fail"      : function() { data = ["", IPC_FAIL_TYPE,                                ""] },
                       "status"    : function() { data = ["", IPC_STATUS,                                   ""] }}
 
@@ -41,7 +42,8 @@ function deserialize_ipc(data)
 {
   const type = data[1].charCodeAt(0)
   if (type === IPC_PLATFORM_INFO)
-    return data[3].replaceAll('%2C', ',')
+    return data[4].replaceAll('%2C', ',')
+
   return data[3]
 }
 //---------------------------------------------------------------------------------------------------------------
