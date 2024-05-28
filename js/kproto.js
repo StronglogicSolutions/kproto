@@ -14,7 +14,6 @@ const encoder              = new TextEncoder()
 //---------------------------------------------------------------------------------------------------------------
 function create_ipc_message(type, payload, platform, id = '')
 {
-  console.log('Creating IPC for', type)
   const frames = []
   let   data   = []
 
