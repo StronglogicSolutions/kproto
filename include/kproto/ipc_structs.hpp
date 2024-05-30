@@ -18,6 +18,7 @@ static const char* REQUEST_CREATE_POLL        {"poll"};
 static const char* REQUEST_SCHEDULE_POLL_STOP {"poll stop"};
 static const char* REQUEST_PROCESS_POLL_RESULT{"poll result"};
 static const char* REQUEST_PROCESS_ROOMS      {"process rooms"};
+static const char* REQUEST_GENERATE_AI        {"generate"};
 //----------------------------------------------------
 struct PlatformIPC
 {
