@@ -720,10 +720,13 @@ public:
 //--------------------
   void loop()
   {
+    using namespace std::chrono;
     for (auto& [_, observer] : m_observers)
-      if (update_time(observer.first); observer.first.second > time_limit)
+    {
+      if ((system_clock::now() - observer.first.first) > time_limit)
         observer.second();
-    std::this_thread::sleep_for(std::chrono::milliseconds(600));
+      std::this_thread::sleep_for(std::chrono::milliseconds(600));
+    }
   }
 
 private:
