@@ -721,10 +721,16 @@ public:
   void loop()
   {
     using namespace std::chrono;
-    for (auto& [_, observer] : m_observers)
+    for (auto it = m_observers.begin(); it != m_observers.end();)
     {
+      auto& observer = it->second;
       if ((system_clock::now() - observer.first.first) > time_limit)
+      {
         observer.second();
+        m_observers.erase(it);
+      }
+      else
+        it++;
       std::this_thread::sleep_for(std::chrono::milliseconds(600));
     }
   }
