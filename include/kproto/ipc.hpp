@@ -718,6 +718,11 @@ public:
     return m_active;
   }
 //--------------------
+  bool has_observer(std::string_view peer) const
+  {
+    return m_observers.find(peer) != m_observers.end();
+  }
+//--------------------
   void loop()
   {
     using namespace std::chrono;
