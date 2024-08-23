@@ -732,7 +732,7 @@ public:
       if ((system_clock::now() - observer.first.first) > time_limit)
       {
         observer.second();
-        m_observers.erase(it);
+        it = m_observers.erase(it);
       }
       else
         it++;
