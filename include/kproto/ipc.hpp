@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <map>
 #include <thread>
-#include <type_traits>
 #include <future>
 #include <zmq.hpp>
 
@@ -85,6 +84,10 @@ static const uint8_t CMD       = 0x09;
 static const uint8_t TIME      = 0x0A;
 static const uint8_t KIQ_DATA  = 0x03;
 static const uint8_t ERROR     = 0x05;
+static const uint8_t DESCRIPT  = 0x04;
+static const uint8_t TASK_TYPE = 0x05;
+static const uint8_t TECH      = 0x06;
+static const uint8_t LOGS      = 0x07;
 } // namespace index
 
 static const uint8_t TELEGRAM_COMMAND_INDEX = 0x00;
@@ -331,6 +334,104 @@ public:
             "(Payload): "  + payload();
   }
 
+};
+//---------------------------------------------------------------------
+class task : public ipc_message
+{
+// DESCRIPT  = 0x04
+// TASK_TYPE = 0x05
+// TECH      = 0x06
+// LOGS      = 0x07
+
+public:
+  task(const std::string& id, const std::string& desc, const std::string& type, const std::string& tech, const std::string& logs)
+  {
+    m_frames = {
+      byte_buffer{},
+      byte_buffer{constants::IPC_PLATFORM_TYPE},
+      byte_buffer{{'K', 'I', 'Q'}},
+      byte_buffer{id.data(), id.data() + id.size()},
+      byte_buffer{desc.data(), desc.data() + desc.size()},
+      byte_buffer{type.data(), type.data() + type.size()},
+      byte_buffer{tech.data(),    tech.data() + tech.size()},
+      byte_buffer{logs.data(), logs.data() + logs.size()}
+    };
+  }
+//--------------------
+  task(const std::vector<byte_buffer>& data)
+  {
+    m_frames = {
+      byte_buffer{},
+      byte_buffer{data.at(constants::index::TYPE)},
+      byte_buffer{data.at(constants::index::PLATFORM)},
+      byte_buffer{data.at(constants::index::ID)},
+      byte_buffer{data.at(constants::index::DESCRIPT)},
+      byte_buffer{data.at(constants::index::TYPE)},
+      byte_buffer{data.at(constants::index::TECH)},
+      byte_buffer{data.at(constants::index::LOGS)}
+    };
+  }
+//--------------------
+  virtual ~task() override {}
+//--------------------
+  std::string platform() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::PLATFORM).data()),
+      m_frames.at(constants::index::PLATFORM).size()
+    };
+  }
+//--------------------
+  std::string id() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::ID).data()),
+      m_frames.at(constants::index::ID).size()
+    };
+  }
+//--------------------
+  std::string description() const // TODO: Change tehse methods
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::DESCRIPT).data()),
+      m_frames.at(constants::index::DESCRIPT).size()
+    };
+  }
+//--------------------
+  std::string type() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::TYPE).data()),
+      m_frames.at(constants::index::TYPE).size()
+    };
+  }
+//--------------------
+  std::string tech() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::TECH).data()),
+      m_frames.at(constants::index::TECH).size()
+    };
+  }
+//--------------------
+  std::string logs() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::LOGS).data()),
+      m_frames.at(constants::index::LOGS).size()
+    };
+  }
+//--------------------
+  std::string to_string() const override
+  {
+    return  "(Type):"        + std::to_string(ipc_message::type())    + ',' +
+            "(Platform):"    + platform()             + ',' +
+            "(ID):"          + id()                   + ',' +
+            "(Description):" + description()          + ',' +
+            "(TYPE):"        + type()                 + ',' +
+            "(TECH:):"       + tech()                 + ',' +
+            "(LOGS):"        + logs();
+  }
 };
 //---------------------------------------------------------------------
 class platform_message : public ipc_message
@@ -624,7 +725,7 @@ public:
   virtual ~status_check() override = default;
 };
 //---------------------------------------------------------------------
-inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message::byte_buffer>&& data)
+inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message::byte_buffer>&& data, bool no_fail = false)
 {
   uint8_t message_type = *(data.at(constants::index::TYPE).data());
   switch (message_type)
@@ -638,7 +739,15 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
     case (constants::IPC_PLATFORM_REQUEST): return std::make_unique<platform_request>(data);
     case (constants::IPC_FAIL_TYPE):        return std::make_unique<fail_message>    (data);
     case (constants::IPC_STATUS):           return std::make_unique<status_check>    (    );
-    default:                                return nullptr;
+    default:
+      if  (no_fail)
+      {
+        auto&& msg = std::make_unique<ipc_message>();
+        auto&  frames = msg->m_frames;
+        frames.insert(frames.end(), data.begin(), data.end());
+        return std::move(msg);
+      }
+      return nullptr;
   }
 }
 //---------------------------------------------------------------------
