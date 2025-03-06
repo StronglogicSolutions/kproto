@@ -42,6 +42,7 @@ static const uint8_t IPC_PLATFORM_REQUEST{0x05};
 static const uint8_t IPC_PLATFORM_INFO   {0x06};
 static const uint8_t IPC_FAIL_TYPE       {0x07};
 static const uint8_t IPC_STATUS          {0x08};
+static const uint8_t IPC_TASK_TYPE       {0x09};
 
 static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_OK_TYPE,          "IPC_OK_TYPE"},
@@ -52,7 +53,8 @@ static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_PLATFORM_REQUEST, "IPC_PLATFORM_REQUEST"},
   {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"},
   {IPC_FAIL_TYPE,        "IPC_FAIL_TYPE"},
-  {IPC_STATUS,           "IPC_STATUS"}
+  {IPC_STATUS,           "IPC_STATUS"},
+  {IPC_TASK_TYPE,        "IPC_TASK_TYPE"}
 };
 
 static const std::unordered_map<std::string, uint8_t> IPC_MESSAGE_VALUES{
@@ -103,6 +105,8 @@ static const char*   IPC_COMMANDS[]{
   "youtube:livestream",
   "no:command"
 };
+
+static const unsigned char KIQ_NAME[] = {'K', 'I', 'Q'};
 
 } // namespace constants
 inline auto IsKeepAlive = [](auto type) { return type == constants::IPC_KEEPALIVE_TYPE; };
@@ -338,18 +342,13 @@ public:
 //---------------------------------------------------------------------
 class task : public ipc_message
 {
-// DESCRIPT  = 0x04
-// TASK_TYPE = 0x05
-// TECH      = 0x06
-// LOGS      = 0x07
-
 public:
   task(const std::string& id, const std::string& desc, const std::string& type, const std::string& tech, const std::string& logs)
   {
     m_frames = {
       byte_buffer{},
-      byte_buffer{constants::IPC_PLATFORM_TYPE},
-      byte_buffer{{'K', 'I', 'Q'}},
+      byte_buffer{constants::IPC_TASK_TYPE},
+      byte_buffer{constants::KIQ_NAME, constants::KIQ_NAME + 3},
       byte_buffer{id.data(), id.data() + id.size()},
       byte_buffer{desc.data(), desc.data() + desc.size()},
       byte_buffer{type.data(), type.data() + type.size()},
@@ -366,7 +365,7 @@ public:
       byte_buffer{data.at(constants::index::PLATFORM)},
       byte_buffer{data.at(constants::index::ID)},
       byte_buffer{data.at(constants::index::DESCRIPT)},
-      byte_buffer{data.at(constants::index::TYPE)},
+      byte_buffer{data.at(constants::index::INFO_TYPE)},
       byte_buffer{data.at(constants::index::TECH)},
       byte_buffer{data.at(constants::index::LOGS)}
     };
@@ -398,11 +397,11 @@ public:
     };
   }
 //--------------------
-  std::string type() const
+  std::string task_type() const
   {
     return std::string{
-      reinterpret_cast<const char*>(m_frames.at(constants::index::TYPE).data()),
-      m_frames.at(constants::index::TYPE).size()
+      reinterpret_cast<const char*>(m_frames.at(constants::index::INFO_TYPE).data()),
+      m_frames.at(constants::index::INFO_TYPE).size()
     };
   }
 //--------------------
@@ -424,11 +423,11 @@ public:
 //--------------------
   std::string to_string() const override
   {
-    return  "(Type):"        + std::to_string(ipc_message::type())    + ',' +
+    return  "(Type):"        + ipc_message::to_string()    + ',' +
             "(Platform):"    + platform()             + ',' +
             "(ID):"          + id()                   + ',' +
             "(Description):" + description()          + ',' +
-            "(TYPE):"        + type()                 + ',' +
+            "(TYPE):"        + task_type()            + ',' +
             "(TECH:):"       + tech()                 + ',' +
             "(LOGS):"        + logs();
   }
