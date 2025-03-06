@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <map>
 #include <thread>
-#include <type_traits>
 #include <future>
 #include <zmq.hpp>
 
@@ -43,6 +42,7 @@ static const uint8_t IPC_PLATFORM_REQUEST{0x05};
 static const uint8_t IPC_PLATFORM_INFO   {0x06};
 static const uint8_t IPC_FAIL_TYPE       {0x07};
 static const uint8_t IPC_STATUS          {0x08};
+static const uint8_t IPC_TASK_TYPE       {0x09};
 
 static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_OK_TYPE,          "IPC_OK_TYPE"},
@@ -53,7 +53,8 @@ static const std::unordered_map<uint8_t, const char*> IPC_MESSAGE_NAMES{
   {IPC_PLATFORM_REQUEST, "IPC_PLATFORM_REQUEST"},
   {IPC_PLATFORM_INFO,    "IPC_PLATFORM_INFO"},
   {IPC_FAIL_TYPE,        "IPC_FAIL_TYPE"},
-  {IPC_STATUS,           "IPC_STATUS"}
+  {IPC_STATUS,           "IPC_STATUS"},
+  {IPC_TASK_TYPE,        "IPC_TASK_TYPE"}
 };
 
 static const std::unordered_map<std::string, uint8_t> IPC_MESSAGE_VALUES{
@@ -85,6 +86,10 @@ static const uint8_t CMD       = 0x09;
 static const uint8_t TIME      = 0x0A;
 static const uint8_t KIQ_DATA  = 0x03;
 static const uint8_t ERROR     = 0x05;
+static const uint8_t DESCRIPT  = 0x04;
+static const uint8_t TASK_TYPE = 0x05;
+static const uint8_t TECH      = 0x06;
+static const uint8_t LOGS      = 0x07;
 } // namespace index
 
 static const uint8_t TELEGRAM_COMMAND_INDEX = 0x00;
@@ -100,6 +105,8 @@ static const char*   IPC_COMMANDS[]{
   "youtube:livestream",
   "no:command"
 };
+
+static const unsigned char KIQ_NAME[] = {'K', 'I', 'Q'};
 
 } // namespace constants
 inline auto IsKeepAlive = [](auto type) { return type == constants::IPC_KEEPALIVE_TYPE; };
@@ -331,6 +338,99 @@ public:
             "(Payload): "  + payload();
   }
 
+};
+//---------------------------------------------------------------------
+class task : public ipc_message
+{
+public:
+  task(const std::string& id, const std::string& desc, const std::string& type, const std::string& tech, const std::string& logs)
+  {
+    m_frames = {
+      byte_buffer{},
+      byte_buffer{constants::IPC_TASK_TYPE},
+      byte_buffer{constants::KIQ_NAME, constants::KIQ_NAME + 3},
+      byte_buffer{id.data(), id.data() + id.size()},
+      byte_buffer{desc.data(), desc.data() + desc.size()},
+      byte_buffer{type.data(), type.data() + type.size()},
+      byte_buffer{tech.data(),    tech.data() + tech.size()},
+      byte_buffer{logs.data(), logs.data() + logs.size()}
+    };
+  }
+//--------------------
+  task(const std::vector<byte_buffer>& data)
+  {
+    m_frames = {
+      byte_buffer{},
+      byte_buffer{data.at(constants::index::TYPE)},
+      byte_buffer{data.at(constants::index::PLATFORM)},
+      byte_buffer{data.at(constants::index::ID)},
+      byte_buffer{data.at(constants::index::DESCRIPT)},
+      byte_buffer{data.at(constants::index::INFO_TYPE)},
+      byte_buffer{data.at(constants::index::TECH)},
+      byte_buffer{data.at(constants::index::LOGS)}
+    };
+  }
+//--------------------
+  virtual ~task() override {}
+//--------------------
+  std::string platform() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::PLATFORM).data()),
+      m_frames.at(constants::index::PLATFORM).size()
+    };
+  }
+//--------------------
+  std::string id() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::ID).data()),
+      m_frames.at(constants::index::ID).size()
+    };
+  }
+//--------------------
+  std::string description() const // TODO: Change tehse methods
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::DESCRIPT).data()),
+      m_frames.at(constants::index::DESCRIPT).size()
+    };
+  }
+//--------------------
+  std::string task_type() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::INFO_TYPE).data()),
+      m_frames.at(constants::index::INFO_TYPE).size()
+    };
+  }
+//--------------------
+  std::string tech() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::TECH).data()),
+      m_frames.at(constants::index::TECH).size()
+    };
+  }
+//--------------------
+  std::string logs() const
+  {
+    return std::string{
+      reinterpret_cast<const char*>(m_frames.at(constants::index::LOGS).data()),
+      m_frames.at(constants::index::LOGS).size()
+    };
+  }
+//--------------------
+  std::string to_string() const override
+  {
+    return  "(Type):"        + ipc_message::to_string()    + ',' +
+            "(Platform):"    + platform()             + ',' +
+            "(ID):"          + id()                   + ',' +
+            "(Description):" + description()          + ',' +
+            "(TYPE):"        + task_type()            + ',' +
+            "(TECH:):"       + tech()                 + ',' +
+            "(LOGS):"        + logs();
+  }
 };
 //---------------------------------------------------------------------
 class platform_message : public ipc_message
@@ -624,7 +724,7 @@ public:
   virtual ~status_check() override = default;
 };
 //---------------------------------------------------------------------
-inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message::byte_buffer>&& data)
+inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message::byte_buffer>&& data, bool no_fail = false)
 {
   uint8_t message_type = *(data.at(constants::index::TYPE).data());
   switch (message_type)
@@ -638,7 +738,15 @@ inline ipc_message::u_ipc_msg_ptr DeserializeIPCMessage(std::vector<ipc_message:
     case (constants::IPC_PLATFORM_REQUEST): return std::make_unique<platform_request>(data);
     case (constants::IPC_FAIL_TYPE):        return std::make_unique<fail_message>    (data);
     case (constants::IPC_STATUS):           return std::make_unique<status_check>    (    );
-    default:                                return nullptr;
+    default:
+      if  (no_fail)
+      {
+        auto&& msg = std::make_unique<ipc_message>();
+        auto&  frames = msg->m_frames;
+        frames.insert(frames.end(), data.begin(), data.end());
+        return std::move(msg);
+      }
+      return nullptr;
   }
 }
 //---------------------------------------------------------------------
