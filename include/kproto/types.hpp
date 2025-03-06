@@ -35,7 +35,8 @@ enum RequestType {
   CONVERT_TASK          = 0x18,
   REPOST_PLATFORM       = 0x19,
   RECONNECT_IPC         = 0x1A,
-  UNKNOWN               = 0x1B
+  KAI_TASK              = 0x1B,
+  UNKNOWN               = 0x1C
 };
 
 /**
@@ -74,6 +75,7 @@ inline RequestType int_to_request_type(int byte)
     case CONVERT_TASK:          return CONVERT_TASK;
     case REPOST_PLATFORM:       return REPOST_PLATFORM;
     case RECONNECT_IPC:         return RECONNECT_IPC;
+    case KAI_TASK:              return KAI_TASK;
   }
   return UNKNOWN;
 }
@@ -109,6 +111,7 @@ inline std::string request_type_to_string(RequestType type)
     case CONVERT_TASK:          return "CONVERT_TASK";
     case REPOST_PLATFORM:       return "REPOST_PLATFORM";
     case RECONNECT_IPC:         return "RECONNECT_IPC";
+    case KAI_TASK:              return "KAI_TASK";
   }
   return "UNKNOWN";
 }
